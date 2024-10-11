@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Ofrecer Ayuda{% endblock %}
+{% block content %}
+    <h2>Ofrecer Ayuda a {{ request.name }}</h2>
+    <p><strong>Institución:</strong> {{ request.institution }}</p>
+    <p><strong>Descripción de la solicitud:</strong> {{ request.description }}</p>
+    <p><strong>Teléfono de contacto:</strong> {{ request.phone }}</p>
+
+    {% if request.recipe_image %}
+        <p><strong>Receta Médica:</strong></p>
+        <img src="{{ url_for('static', filename='uploads/' ~ request.recipe_image) }}" alt="Receta Médica" 
+             class="img-thumbnail" style="width: 300px; height: 300px; object-fit: cover;">
+    {% endif %}
+
+    {% if request.status == 'pending' %}
+        <form method="POST">
+            <button type="submit" class="btn btn-primary">Aceptar Solicitud</button>
+        </form>
+    {% elif request.status == 'accepted' %}
+        <a href="{{ whatsapp_link }}" class="btn btn-success" target="_blank">Contactar por WhatsApp</a>
+    {% else %}
+        <button class="btn btn-secondary" disabled>Solicitud Completada</button>
+    {% endif %}
+{% endblock %}

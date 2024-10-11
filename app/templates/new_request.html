@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Nueva Solicitud{% endblock %}
+{% block content %}
+    <h2>Crear Nueva Solicitud</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="name" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-3">
+            <label for="institution" class="form-label">Institución</label>
+            <input type="text" class="form-control" id="institution" name="institution" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Descripción</label>
+            <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="contact" class="form-label">Correo de contacto</label>
+            <input type="email" class="form-control" id="contact" name="contact" required>
+        </div>
+        <div class="mb-3">
+            <label for="phone" class="form-label">Teléfono (en formato internacional)</label>
+            <input type="text" class="form-control" id="phone" name="phone" placeholder="+34123456789" required>
+        </div>
+        <div class="mb-3">
+            <label for="location" class="form-label">Ubicación</label>
+            <input type="text" class="form-control" id="location" name="location" required>
+            <input type="hidden" id="latitude" name="latitude">
+            <input type="hidden" id="longitude" name="longitude">
+        </div>
+        <div class="mb-3">
+            <label for="recipe" class="form-label">Subir Receta Médica (Imagen)</label>
+            <input type="file" class="form-control" id="recipe" name="recipe" accept="image/*" required>
+        </div>
+        
+        <!-- Mapa de Google Maps -->
+        <div id="map" style="height: 400px; width: 100%;"></div>
+        
+        <button type="submit" class="btn btn-primary">Enviar</button>
+    </form>
+
+    <!-- Script de Google Maps -->
+    <script>
+        var map;
+        var marker;
+        var geocoder;
+
+        function initMap() {
+            var defaultLocation = {lat: -25.44918583429499, lng: -56.4321330319502}; // Ubicación por defecto
+
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: defaultLocation,
+                zoom: 15
+            });
+
+            marker = new google.maps.Marker({
+                position: defaultLocation,
+                map: map,
+                draggable: true
+            });
+
+            geocoder = new google.maps.Geocoder();  // Inicializamos el Geocoder
+
+            var input = document.getElementById('location');
+            var autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.bindTo('bounds', map);
+
+            // Escuchar cambios en la ubicación seleccionada con Autocompletado
+            autocomplete.addListener('place_changed', function() {
+                var place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    return;
+                }
+
+                // Actualizar mapa y marcador
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(17);
+                }
+                marker.setPosition(place.geometry.location);
+                document.getElementById('latitude').value = place.geometry.location.lat();
+                document.getElementById('longitude').value = place.geometry.location.lng();
+            });
+
+            // Actualizar coordenadas al hacer clic en el mapa
+            google.maps.event.addListener(map, 'click', function(event) {
+                marker.setPosition(event.latLng);
+                document.getElementById('latitude').value = event.latLng.lat();
+                document.getElementById('longitude').value = event.latLng.lng();
+                
+                // Llamada a la función de geocodificación inversa
+                geocodeLatLng(event.latLng);
+            });
+
+            // Actualizar coordenadas cuando el marcador es movido
+            google.maps.event.addListener(marker, 'position_changed', function() {
+                var position = marker.getPosition();
+                document.getElementById('latitude').value = position.lat();
+                document.getElementById('longitude').value = position.lng();
+                
+                // Llamada a la función de geocodificación inversa
+                geocodeLatLng(position);
+            });
+        }
+
+        // Función para geocodificación inversa
+        function geocodeLatLng(latlng) {
+            geocoder.geocode({'location': latlng}, function(results, status) {
+                if (status === 'OK') {
+                    if (results[0]) {
+                        document.getElementById('location').value = results[0].formatted_address;  // Colocar la dirección en el input
+                    } else {
+                        console.log('No se encontraron resultados');
+                    }
+                } else {
+                    console.log('Geocoder falló debido a: ' + status);
+                }
+            });
+        }
+    </script>
+
+    <!-- Cargar Google Maps API con Autocompletado y Maps -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA1gXzdsekZXaWds6d0MmxMAf7LPsJ9wJ4&libraries=places&callback=initMap"></script>
+{% endblock %}

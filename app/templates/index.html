@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Solicitudes de Ayuda{% endblock %}
+{% block content %}
+    <h2>Solicitudes de Ayuda</h2>
+
+    <!-- Filtros para ver las solicitudes según el estado -->
+    <div class="mb-3">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-primary {% if not selected_status %}active{% endif %}">Todas</a>
+        <a href="{{ url_for('index', status='pending') }}" class="btn btn-outline-warning {% if selected_status == 'pending' %}active{% endif %}">Pendientes</a>
+        <a href="{{ url_for('index', status='accepted') }}" class="btn btn-outline-success {% if selected_status == 'accepted' %}active{% endif %}">Aceptadas</a>
+        <a href="{{ url_for('index', status='completed') }}" class="btn btn-outline-secondary {% if selected_status == 'completed' %}active{% endif %}">Completadas</a>
+    </div>
+
+    <!-- Mostrar las solicitudes -->
+    <div class="list-group">
+        {% for request in requests %}
+            <div class="list-group-item">
+                <h5 class="mb-1">{{ request.name }} - {{ request.institution }}</h5>
+                <p class="mb-1">{{ request.description }}</p>
+                <small>Estado: 
+                    {% if request.status =='pending' %}
+                    <i class="fas fa-hourglass-half text-warning"></i> Pendiente
+                    {% elif request.status == 'accepted' %}
+                        <i class="fas fa-check-circle text-success"></i> Aceptado
+                    {% elif request.status == 'completed' %}
+                        <i class="fas fa-check-double text-secondary"></i> Completado
+                    {% endif %}
+                </small>
+
+                <!-- Botón para ver más detalles o completar la solicitud -->
+                <div class="mt-2">
+                    <a href="{{ url_for('offer_help', request_id=request.id) }}" class="btn btn-info btn-sm">Ver Detalles</a>
+
+                    {% if request.status == 'accepted'%}
+                        <!-- Botón para completar la solicitud -->
+                        <a href="{{ url_for('complete_request', request_id=request.id) }}" class="btn btn-success btn-sm">Marcar como Completada</a>
+                    {% elif request.status == 'completed' %}
+                        <span class="badge bg-secondary">Completada</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <p class="text-muted">No hay solicitudes en esta categoría.</p>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+<!--  -->
